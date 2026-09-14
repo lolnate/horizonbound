@@ -123,13 +123,14 @@ export class LinearOAuthService {
       this.options.database.sqlite
         .prepare(
           `INSERT INTO connections (
-             id, linear_user_id, linear_user_name, workspace_id, workspace_name, access_token_ciphertext,
-             refresh_token_ciphertext, expires_at, granted_scope, reconnect_required, created_at, updated_at
-           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+             id, linear_user_id, linear_user_name, workspace_id, workspace_name, credential_mode,
+             access_token_ciphertext, refresh_token_ciphertext, expires_at, granted_scope, reconnect_required, created_at, updated_at
+           ) VALUES (?, ?, ?, ?, ?, 'oauth', ?, ?, ?, ?, 0, ?, ?)
            ON CONFLICT(workspace_id) DO UPDATE SET
              linear_user_id = excluded.linear_user_id,
              linear_user_name = excluded.linear_user_name,
              workspace_name = excluded.workspace_name,
+             credential_mode = 'oauth',
              access_token_ciphertext = excluded.access_token_ciphertext,
              refresh_token_ciphertext = excluded.refresh_token_ciphertext,
              expires_at = excluded.expires_at,

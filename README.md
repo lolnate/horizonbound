@@ -8,14 +8,16 @@ Horizonbound is a capacity-aware roadmap forecasting application for Linear. Lin
 
 - Node.js 22 or newer
 - npm
-- A Linear OAuth application with a read-only callback, when enabling a real connection
+- A read-only Linear personal API key for a single-user local connection, or a Linear OAuth application for the retained OAuth mode
 
 ## Setup
 
 ```bash
 npm ci
 cp .env.example .env
-# Set TOKEN_ENCRYPTION_KEY with: openssl rand -base64 32
+# Set LINEAR_API_KEY to a read-only personal key for local use.
+# OAuth mode instead requires LINEAR_CLIENT_ID and a TOKEN_ENCRYPTION_KEY from:
+# openssl rand -base64 32
 npm run check
 ```
 
@@ -26,13 +28,17 @@ APP_BASE_URL=http://127.0.0.1:3000 npm run build
 APP_BASE_URL=http://127.0.0.1:3000 npm start
 ```
 
-Runtime state is stored outside the repository. The default on Linux is `~/.local/state/horizonbound`. Disconnect removes local provider tokens and sessions but retains cached roadmap data; stop Horizonbound and delete the configured state directory when you intentionally want to remove that cache.
+Runtime state is stored outside the repository. The default on Linux is `~/.local/state/horizonbound`. Ending a personal-key-backed local session retains both the operator-managed key and cached roadmap data; revoke or rotate the key in Linear and remove it from process configuration when needed. OAuth disconnect removes local provider tokens and sessions. Stop Horizonbound and delete the configured state directory when you intentionally want to remove cached data.
 
-The Linear OAuth callback must exactly match `${APP_BASE_URL}/api/auth/linear/callback`. Horizonbound requests only Linear's `read` scope.
+### Linear credentials
+
+For a single-user local installation, create a personal API key under **Linear Settings → Security & access → Personal API keys**. Select **Read** permission and the narrowest team scope that exposes the source data Horizonbound needs, then set `LINEAR_API_KEY` in server-side operator configuration. Do not enter the key in the browser or commit it. If both modes are configured, the personal API key takes precedence.
+
+OAuth remains available for deployments that register an application. Its callback must exactly match `${APP_BASE_URL}/api/auth/linear/callback`; Horizonbound requests only Linear's `read` scope.
 
 ### Network exposure
 
-You may explicitly bind Horizonbound to a LAN address or `0.0.0.0`. The application warns but does not prevent this. The MVP has no dedicated front-door access authentication, so network peers may be able to reach roadmap data and connection operations. Add an appropriate access boundary before exposing it to an untrusted network.
+You may explicitly bind Horizonbound to a LAN address or `0.0.0.0` for OAuth-backed deployments. The application warns but does not prevent this. Personal API-key connection bootstrap is restricted to a loopback listener and browser-visible origin because the MVP has no dedicated front-door access authentication. Add an appropriate access boundary before exposing Horizonbound to an untrusted network.
 
 ## Commands
 
@@ -50,14 +56,14 @@ You may explicitly bind Horizonbound to a LAN address or `0.0.0.0`. The applicat
 
 ## Opt-in Linear contract test
 
-Ordinary tests are synthetic and make no network calls. Before pilot use, run the adapter contract against a separately authorized fixture workspace by setting `LINEAR_CONTRACT_ACCESS_TOKEN`, `LINEAR_CONTRACT_WORKSPACE_ID`, `LINEAR_CONTRACT_TEAM_ID`, `LINEAR_CONTRACT_PROJECT_LABEL_ID`, and `LINEAR_CONTRACT_PROJECT_ID`, then run `npm test -- src/sync/linear-contract.test.ts`. This check is skipped when those variables are absent and never mutates Linear.
+Ordinary tests are synthetic and make no network calls. Before pilot use, run the adapter contract against a separately authorized fixture workspace by setting either `LINEAR_CONTRACT_API_KEY` (personal-key mode) or `LINEAR_CONTRACT_ACCESS_TOKEN` (OAuth mode), plus `LINEAR_CONTRACT_WORKSPACE_ID`, `LINEAR_CONTRACT_TEAM_ID`, `LINEAR_CONTRACT_PROJECT_LABEL_ID`, and `LINEAR_CONTRACT_PROJECT_ID`. Then run `npm test -- src/sync/linear-contract.test.ts`. This check is skipped when required variables are absent and never mutates Linear.
 
-OAuth registration and the full interactive Authorization Code + PKCE contract remain operator-controlled prerequisites; the repository does not create an OAuth application or Linear fixture data.
+Personal-key creation, OAuth registration, and fixture access remain operator-controlled. The repository does not create credentials or Linear fixture data.
 
 ## Security and privacy
 
-- Request only Linear's read scope.
-- Keep OAuth credentials and the token-encryption key in environment variables, never tracked files.
+- Use read-only Linear credentials and the narrowest compatible personal-key team scope.
+- Keep personal API keys, OAuth credentials, and token-encryption keys in server-side operator configuration, never tracked files. Personal API keys are not copied into SQLite.
 - Use synthetic data in tests.
 - Do not include raw provider payloads, authorization codes, tokens, cookies, workspace names, or internal identifiers in routine logs.
 

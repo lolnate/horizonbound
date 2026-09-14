@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app-shell";
+import { ConnectionStatus } from "@/components/connection-status";
 import { LaunchRefresh } from "@/components/launch-refresh";
 import { PlanSetup } from "@/components/plan-setup";
 import { RoadmapView } from "@/components/roadmap-view";
@@ -6,7 +7,7 @@ import { isLoopbackHost } from "@/config/runtime";
 import { getPlan } from "@/db/plan-repository";
 import { getRoadmap } from "@/db/roadmap-repository";
 import { currentSession } from "@/server/session";
-import { getDatabase, oauthIsConfigured } from "@/server/services";
+import { getDatabase, linearCredentialMode } from "@/server/services";
 import { refreshPlanAction, saveForecastAction, savePlanAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,12 @@ const networkWarning =
 export default async function Home({
   searchParams
 }: {
-  searchParams: Promise<{ disconnected?: string; revocation?: string }>;
+  searchParams: Promise<{
+    auth?: string;
+    disconnected?: string;
+    revocation?: string;
+    sync?: string;
+  }>;
 }) {
   const query = await searchParams;
   const session = await currentSession();
@@ -27,17 +33,25 @@ export default async function Home({
     return (
       <AppShell
         nonLoopbackWarning={networkWarning}
-        oauthConfigured={oauthIsConfigured()}
+        credentialMode={linearCredentialMode()}
         notice={
-          query.disconnected === "retained"
-            ? `Linear disconnected. Cached local data remains in the configured state directory; stop Horizonbound and delete that directory to remove it.${query.revocation === "failed" ? " Provider revocation could not be confirmed, but local credentials were removed." : ""}`
-            : undefined
+          query.auth === "failed"
+            ? "Linear connection failed. Check that the configured credential is valid and has sufficient read access."
+            : query.disconnected === "retained"
+              ? `Linear session ended. Cached local data remains in the configured state directory; stop Horizonbound and delete that directory to remove it.${query.revocation === "failed" ? " Provider revocation could not be confirmed, but local credentials were removed." : ""}`
+              : undefined
         }
       />
     );
   }
 
   const database = getDatabase();
+  const connectionStatus = (
+    <ConnectionStatus
+      credentialMode={session.credentialMode}
+      syncFailed={query.sync === "failed"}
+    />
+  );
   const planRow = database.sqlite
     .prepare("SELECT id FROM plans WHERE connection_id = ? ORDER BY created_at LIMIT 1")
     .get(session.connectionId) as { id: string } | undefined;
@@ -58,6 +72,7 @@ export default async function Home({
               {networkWarning}
             </div>
           ) : null}
+          {connectionStatus}
           <h1>Preparing Linear source choices</h1>
           <p>
             The connection is saved, but its source configuration has not completed a successful
@@ -89,6 +104,7 @@ export default async function Home({
             {networkWarning}
           </div>
         ) : null}
+        {connectionStatus}
         <LaunchRefresh />
         <PlanSetup
           workspaceName={session.workspaceName}
@@ -123,6 +139,7 @@ export default async function Home({
           {networkWarning}
         </div>
       ) : null}
+      {connectionStatus}
       {session.reconnectRequired ? (
         <div className="network-warning" role="alert">
           Linear must be reconnected. Cached roadmap data remains visible.
@@ -137,11 +154,13 @@ export default async function Home({
         refreshAction={refreshPlanAction}
         saveForecastAction={saveForecastAction}
       />
-      <form action="/api/auth/linear/disconnect" method="post" className="toolbar">
-        <button type="submit" className="secondary">
-          Disconnect Linear
-        </button>
-      </form>
+      <div className="toolbar">
+        <form action="/api/auth/linear/disconnect" method="post">
+          <button type="submit" className="secondary">
+            {session.credentialMode === "api_key" ? "End local session" : "Disconnect Linear"}
+          </button>
+        </form>
+      </div>
     </>
   );
 }

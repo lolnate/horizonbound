@@ -17,6 +17,10 @@ export function isLoopbackHost(host: string): boolean {
   return normalized === "localhost" || normalized === "::1" || normalized.startsWith("127.");
 }
 
+export function apiKeyRuntimeAllowed(config: Pick<RuntimeConfig, "host" | "appBaseUrl">): boolean {
+  return isLoopbackHost(config.host) && isLoopbackHost(config.appBaseUrl.hostname);
+}
+
 function parseBaseUrl(value: string | undefined): URL {
   if (!value) {
     throw new Error("APP_BASE_URL is required and must be the browser-visible application origin");

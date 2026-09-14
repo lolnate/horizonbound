@@ -1,4 +1,5 @@
 import path from "node:path";
+import { LinearApiKeyService, LinearHttpApiKeyIdentityProvider } from "@/auth/api-key";
 import { LinearHttpOAuthProvider } from "@/auth/linear-http-oauth-provider";
 import { LinearOAuthService } from "@/auth/oauth";
 import { TokenCipher } from "@/auth/token-cipher";
@@ -7,6 +8,16 @@ import { openDatabase, type HorizonboundDatabase } from "@/db/database";
 
 let database: HorizonboundDatabase | undefined;
 let oauthService: LinearOAuthService | undefined;
+let apiKeyService: LinearApiKeyService | undefined;
+
+export type LinearCredentialMode = "api_key" | "oauth";
+
+export function linearCredentialMode(
+  env: Record<string, string | undefined> = process.env
+): LinearCredentialMode | null {
+  if (env.LINEAR_API_KEY?.trim()) return "api_key";
+  return env.LINEAR_CLIENT_ID && env.TOKEN_ENCRYPTION_KEY && env.APP_BASE_URL ? "oauth" : null;
+}
 
 export function getDatabase() {
   if (!database) {
@@ -17,7 +28,19 @@ export function getDatabase() {
 }
 
 export function oauthIsConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
-  return Boolean(env.LINEAR_CLIENT_ID && env.TOKEN_ENCRYPTION_KEY && env.APP_BASE_URL);
+  return linearCredentialMode({ ...env, LINEAR_API_KEY: undefined }) === "oauth";
+}
+
+export function getApiKeyService() {
+  const apiKey = process.env.LINEAR_API_KEY?.trim();
+  if (!apiKey) throw new Error("LINEAR_API_KEY is not configured");
+  if (apiKeyService) return apiKeyService;
+  apiKeyService = new LinearApiKeyService({
+    database: getDatabase(),
+    provider: new LinearHttpApiKeyIdentityProvider(),
+    apiKey
+  });
+  return apiKeyService;
 }
 
 export function getOAuthService() {

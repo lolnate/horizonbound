@@ -9,6 +9,7 @@ export interface SessionContext {
   workspaceName: string;
   linearUserId: string;
   linearUserName: string;
+  credentialMode: "api_key" | "oauth";
   reconnectRequired: number;
 }
 
@@ -21,6 +22,7 @@ export async function currentSession(): Promise<SessionContext | undefined> {
       `SELECT c.id AS connectionId, c.workspace_id AS workspaceId,
               c.workspace_name AS workspaceName, c.linear_user_id AS linearUserId,
               c.linear_user_name AS linearUserName,
+              c.credential_mode AS credentialMode,
               c.reconnect_required AS reconnectRequired
        FROM app_sessions s JOIN connections c ON c.id = s.connection_id
        WHERE s.id_hash = ? AND s.expires_at > ?`

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadRuntimeConfig } from "./runtime";
+import { apiKeyRuntimeAllowed, loadRuntimeConfig } from "./runtime";
 
 describe("loadRuntimeConfig", () => {
   it("uses a loopback listener by default", () => {
@@ -36,6 +36,24 @@ describe("loadRuntimeConfig", () => {
     expect(config.host).toBe("0.0.0.0");
     expect(config.port).toBe(4100);
     expect(config.nonLoopbackWarning).toMatch(/no dedicated front-door access authentication/i);
+  });
+
+  it("allows API-key mode only when listener and browser origin are loopback", () => {
+    expect(
+      apiKeyRuntimeAllowed({ host: "127.0.0.1", appBaseUrl: new URL("http://localhost:3000") })
+    ).toBe(true);
+    expect(
+      apiKeyRuntimeAllowed({
+        host: "0.0.0.0",
+        appBaseUrl: new URL("http://localhost:3000")
+      })
+    ).toBe(false);
+    expect(
+      apiKeyRuntimeAllowed({
+        host: "127.0.0.1",
+        appBaseUrl: new URL("https://horizonbound.example")
+      })
+    ).toBe(false);
   });
 
   it("rejects invalid ports", () => {
