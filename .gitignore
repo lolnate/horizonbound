@@ -1,0 +1,14 @@
+.next/
+node_modules/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.horizonbound/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.DS_Store
