@@ -1,0 +1,1487 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "001c744f-1266-48d0-912b-4507c0622970",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "app_sessions": {
+      "name": "app_sessions",
+      "columns": {
+        "id_hash": {
+          "name": "id_hash",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "connection_id": {
+          "name": "connection_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "app_sessions_connection_id_connections_id_fk": {
+          "name": "app_sessions_connection_id_connections_id_fk",
+          "tableFrom": "app_sessions",
+          "tableTo": "connections",
+          "columnsFrom": ["connection_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "capacity_lanes": {
+      "name": "capacity_lanes",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weekly_allocation": {
+          "name": "weekly_allocation",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "capacity_lanes_plan_name_unique": {
+          "name": "capacity_lanes_plan_name_unique",
+          "columns": ["plan_id", "name"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "capacity_lanes_plan_id_plans_id_fk": {
+          "name": "capacity_lanes_plan_id_plans_id_fk",
+          "tableFrom": "capacity_lanes",
+          "tableTo": "plans",
+          "columnsFrom": ["plan_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "capacity_lanes_allocation_nonnegative": {
+          "name": "capacity_lanes_allocation_nonnegative",
+          "value": "\"capacity_lanes\".\"weekly_allocation\" >= 0"
+        }
+      }
+    },
+    "connections": {
+      "name": "connections",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "linear_user_id": {
+          "name": "linear_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "linear_user_name": {
+          "name": "linear_user_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "''"
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_name": {
+          "name": "workspace_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "access_token_ciphertext": {
+          "name": "access_token_ciphertext",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "refresh_token_ciphertext": {
+          "name": "refresh_token_ciphertext",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "granted_scope": {
+          "name": "granted_scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reconnect_required": {
+          "name": "reconnect_required",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "connections_workspace_unique": {
+          "name": "connections_workspace_unique",
+          "columns": ["workspace_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "forecast_revisions": {
+      "name": "forecast_revisions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "forecast_id": {
+          "name": "forecast_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor": {
+          "name": "actor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unrefined_low": {
+          "name": "unrefined_low",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unrefined_expected": {
+          "name": "unrefined_expected",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unrefined_high": {
+          "name": "unrefined_high",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "completed_actual": {
+          "name": "completed_actual",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "detailed_open": {
+          "name": "detailed_open",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "baseline_lifetime_low": {
+          "name": "baseline_lifetime_low",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "baseline_lifetime_expected": {
+          "name": "baseline_lifetime_expected",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "baseline_lifetime_high": {
+          "name": "baseline_lifetime_high",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "forecast_revisions_forecast_id_forecasts_id_fk": {
+          "name": "forecast_revisions_forecast_id_forecasts_id_fk",
+          "tableFrom": "forecast_revisions",
+          "tableTo": "forecasts",
+          "columnsFrom": ["forecast_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "forecasts": {
+      "name": "forecasts",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "plan_id": {
+          "name": "plan_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "project_linear_id": {
+          "name": "project_linear_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unrefined_low": {
+          "name": "unrefined_low",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unrefined_expected": {
+          "name": "unrefined_expected",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unrefined_high": {
+          "name": "unrefined_high",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "confidence": {
+          "name": "confidence",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "estimate_basis": {
+          "name": "estimate_basis",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "forecast_as_of_date": {
+          "name": "forecast_as_of_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "capacity_lane_id": {
+          "name": "capacity_lane_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "horizon_share": {
+          "name": "horizon_share",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "latest_revision_id": {
+          "name": "latest_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "forecasts_plan_project_unique": {
+          "name": "forecasts_plan_project_unique",
+          "columns": ["plan_id", "project_linear_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "forecasts_plan_id_plans_id_fk": {
+          "name": "forecasts_plan_id_plans_id_fk",
+          "tableFrom": "forecasts",
+          "tableTo": "plans",
+          "columnsFrom": ["plan_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "forecasts_capacity_lane_id_capacity_lanes_id_fk": {
+          "name": "forecasts_capacity_lane_id_capacity_lanes_id_fk",
+          "tableFrom": "forecasts",
+          "tableTo": "capacity_lanes",
+          "columnsFrom": ["capacity_lane_id"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "forecasts_low_nonnegative": {
+          "name": "forecasts_low_nonnegative",
+          "value": "\"forecasts\".\"unrefined_low\" >= 0"
+        },
+        "forecasts_range_order": {
+          "name": "forecasts_range_order",
+          "value": "\"forecasts\".\"unrefined_low\" <= \"forecasts\".\"unrefined_expected\" AND \"forecasts\".\"unrefined_expected\" <= \"forecasts\".\"unrefined_high\""
+        },
+        "forecasts_horizon_share": {
+          "name": "forecasts_horizon_share",
+          "value": "\"forecasts\".\"horizon_share\" BETWEEN 0 AND 100"
+        }
+      }
+    },
+    "oauth_states": {
+      "name": "oauth_states",
+      "columns": {
+        "correlation_hash": {
+          "name": "correlation_hash",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "state_hash": {
+          "name": "state_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "verifier_ciphertext": {
+          "name": "verifier_ciphertext",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "redirect_uri": {
+          "name": "redirect_uri",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "consumed_at": {
+          "name": "consumed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "oauth_states_state_hash_unique": {
+          "name": "oauth_states_state_hash_unique",
+          "columns": ["state_hash"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "plans": {
+      "name": "plans",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "connection_id": {
+          "name": "connection_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "membership_label_id": {
+          "name": "membership_label_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "commitment_status_id": {
+          "name": "commitment_status_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "horizon_weeks": {
+          "name": "horizon_weeks",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weekly_capacity": {
+          "name": "weekly_capacity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "capacity_effective_date": {
+          "name": "capacity_effective_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "refinement_lead_time_days": {
+          "name": "refinement_lead_time_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_generation_id": {
+          "name": "current_generation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "plans_connection_name_unique": {
+          "name": "plans_connection_name_unique",
+          "columns": ["connection_id", "name"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "plans_connection_id_connections_id_fk": {
+          "name": "plans_connection_id_connections_id_fk",
+          "tableFrom": "plans",
+          "tableTo": "connections",
+          "columnsFrom": ["connection_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "plans_horizon_positive": {
+          "name": "plans_horizon_positive",
+          "value": "\"plans\".\"horizon_weeks\" > 0"
+        },
+        "plans_capacity_nonnegative": {
+          "name": "plans_capacity_nonnegative",
+          "value": "\"plans\".\"weekly_capacity\" >= 0"
+        },
+        "plans_lead_time_nonnegative": {
+          "name": "plans_lead_time_nonnegative",
+          "value": "\"plans\".\"refinement_lead_time_days\" >= 0"
+        }
+      }
+    },
+    "project_aggregates": {
+      "name": "project_aggregates",
+      "columns": {
+        "generation_id": {
+          "name": "generation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "project_linear_id": {
+          "name": "project_linear_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "completed_actual": {
+          "name": "completed_actual",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "detailed_open": {
+          "name": "detailed_open",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unestimated_open_count": {
+          "name": "unestimated_open_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "possible_double_counting": {
+          "name": "possible_double_counting",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "project_aggregates_generation_id_sync_generations_id_fk": {
+          "name": "project_aggregates_generation_id_sync_generations_id_fk",
+          "tableFrom": "project_aggregates",
+          "tableTo": "sync_generations",
+          "columnsFrom": ["generation_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "project_aggregates_generation_id_project_linear_id_source_projects_generation_id_linear_id_fk": {
+          "name": "project_aggregates_generation_id_project_linear_id_source_projects_generation_id_linear_id_fk",
+          "tableFrom": "project_aggregates",
+          "tableTo": "source_projects",
+          "columnsFrom": ["generation_id", "project_linear_id"],
+          "columnsTo": ["generation_id", "linear_id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "project_aggregates_generation_id_project_linear_id_pk": {
+          "columns": ["generation_id", "project_linear_id"],
+          "name": "project_aggregates_generation_id_project_linear_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "source_issues": {
+      "name": "source_issues",
+      "columns": {
+        "generation_id": {
+          "name": "generation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "linear_id": {
+          "name": "linear_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "project_linear_id": {
+          "name": "project_linear_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "parent_linear_id": {
+          "name": "parent_linear_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "estimate": {
+          "name": "estimate",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "archived": {
+          "name": "archived",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "source_issues_generation_project_idx": {
+          "name": "source_issues_generation_project_idx",
+          "columns": ["generation_id", "project_linear_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "source_issues_generation_id_sync_generations_id_fk": {
+          "name": "source_issues_generation_id_sync_generations_id_fk",
+          "tableFrom": "source_issues",
+          "tableTo": "sync_generations",
+          "columnsFrom": ["generation_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "source_issues_generation_id_project_linear_id_source_projects_generation_id_linear_id_fk": {
+          "name": "source_issues_generation_id_project_linear_id_source_projects_generation_id_linear_id_fk",
+          "tableFrom": "source_issues",
+          "tableTo": "source_projects",
+          "columnsFrom": ["generation_id", "project_linear_id"],
+          "columnsTo": ["generation_id", "linear_id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "source_issues_generation_id_linear_id_pk": {
+          "columns": ["generation_id", "linear_id"],
+          "name": "source_issues_generation_id_linear_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "source_issues_estimate_nonnegative": {
+          "name": "source_issues_estimate_nonnegative",
+          "value": "\"source_issues\".\"estimate\" IS NULL OR \"source_issues\".\"estimate\" >= 0"
+        }
+      }
+    },
+    "source_labels": {
+      "name": "source_labels",
+      "columns": {
+        "generation_id": {
+          "name": "generation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "linear_id": {
+          "name": "linear_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "source_labels_generation_id_sync_generations_id_fk": {
+          "name": "source_labels_generation_id_sync_generations_id_fk",
+          "tableFrom": "source_labels",
+          "tableTo": "sync_generations",
+          "columnsFrom": ["generation_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "source_labels_generation_id_linear_id_pk": {
+          "columns": ["generation_id", "linear_id"],
+          "name": "source_labels_generation_id_linear_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "source_project_labels": {
+      "name": "source_project_labels",
+      "columns": {
+        "generation_id": {
+          "name": "generation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "project_linear_id": {
+          "name": "project_linear_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "label_linear_id": {
+          "name": "label_linear_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "source_project_labels_generation_id_project_linear_id_source_projects_generation_id_linear_id_fk": {
+          "name": "source_project_labels_generation_id_project_linear_id_source_projects_generation_id_linear_id_fk",
+          "tableFrom": "source_project_labels",
+          "tableTo": "source_projects",
+          "columnsFrom": ["generation_id", "project_linear_id"],
+          "columnsTo": ["generation_id", "linear_id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "source_project_labels_generation_id_label_linear_id_source_labels_generation_id_linear_id_fk": {
+          "name": "source_project_labels_generation_id_label_linear_id_source_labels_generation_id_linear_id_fk",
+          "tableFrom": "source_project_labels",
+          "tableTo": "source_labels",
+          "columnsFrom": ["generation_id", "label_linear_id"],
+          "columnsTo": ["generation_id", "linear_id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "source_project_labels_generation_id_project_linear_id_label_linear_id_pk": {
+          "columns": ["generation_id", "project_linear_id", "label_linear_id"],
+          "name": "source_project_labels_generation_id_project_linear_id_label_linear_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "source_project_teams": {
+      "name": "source_project_teams",
+      "columns": {
+        "generation_id": {
+          "name": "generation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "project_linear_id": {
+          "name": "project_linear_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_linear_id": {
+          "name": "team_linear_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "source_project_teams_generation_id_project_linear_id_source_projects_generation_id_linear_id_fk": {
+          "name": "source_project_teams_generation_id_project_linear_id_source_projects_generation_id_linear_id_fk",
+          "tableFrom": "source_project_teams",
+          "tableTo": "source_projects",
+          "columnsFrom": ["generation_id", "project_linear_id"],
+          "columnsTo": ["generation_id", "linear_id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "source_project_teams_generation_id_team_linear_id_source_teams_generation_id_linear_id_fk": {
+          "name": "source_project_teams_generation_id_team_linear_id_source_teams_generation_id_linear_id_fk",
+          "tableFrom": "source_project_teams",
+          "tableTo": "source_teams",
+          "columnsFrom": ["generation_id", "team_linear_id"],
+          "columnsTo": ["generation_id", "linear_id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "source_project_teams_generation_id_project_linear_id_team_linear_id_pk": {
+          "columns": ["generation_id", "project_linear_id", "team_linear_id"],
+          "name": "source_project_teams_generation_id_project_linear_id_team_linear_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "source_projects": {
+      "name": "source_projects",
+      "columns": {
+        "generation_id": {
+          "name": "generation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "linear_id": {
+          "name": "linear_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status_id": {
+          "name": "status_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "archived": {
+          "name": "archived",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "source_projects_generation_id_sync_generations_id_fk": {
+          "name": "source_projects_generation_id_sync_generations_id_fk",
+          "tableFrom": "source_projects",
+          "tableTo": "sync_generations",
+          "columnsFrom": ["generation_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "source_projects_generation_id_status_id_source_statuses_generation_id_linear_id_fk": {
+          "name": "source_projects_generation_id_status_id_source_statuses_generation_id_linear_id_fk",
+          "tableFrom": "source_projects",
+          "tableTo": "source_statuses",
+          "columnsFrom": ["generation_id", "status_id"],
+          "columnsTo": ["generation_id", "linear_id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "source_projects_generation_id_linear_id_pk": {
+          "columns": ["generation_id", "linear_id"],
+          "name": "source_projects_generation_id_linear_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "source_statuses": {
+      "name": "source_statuses",
+      "columns": {
+        "generation_id": {
+          "name": "generation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "linear_id": {
+          "name": "linear_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "source_statuses_generation_id_sync_generations_id_fk": {
+          "name": "source_statuses_generation_id_sync_generations_id_fk",
+          "tableFrom": "source_statuses",
+          "tableTo": "sync_generations",
+          "columnsFrom": ["generation_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "source_statuses_generation_id_team_id_source_teams_generation_id_linear_id_fk": {
+          "name": "source_statuses_generation_id_team_id_source_teams_generation_id_linear_id_fk",
+          "tableFrom": "source_statuses",
+          "tableTo": "source_teams",
+          "columnsFrom": ["generation_id", "team_id"],
+          "columnsTo": ["generation_id", "linear_id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "source_statuses_generation_id_linear_id_pk": {
+          "columns": ["generation_id", "linear_id"],
+          "name": "source_statuses_generation_id_linear_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "source_teams": {
+      "name": "source_teams",
+      "columns": {
+        "generation_id": {
+          "name": "generation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "linear_id": {
+          "name": "linear_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "source_teams_generation_id_sync_generations_id_fk": {
+          "name": "source_teams_generation_id_sync_generations_id_fk",
+          "tableFrom": "source_teams",
+          "tableTo": "sync_generations",
+          "columnsFrom": ["generation_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "source_teams_generation_id_linear_id_pk": {
+          "columns": ["generation_id", "linear_id"],
+          "name": "source_teams_generation_id_linear_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "sync_generations": {
+      "name": "sync_generations",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "connection_id": {
+          "name": "connection_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "promoted_at": {
+          "name": "promoted_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "sync_generations_connection_status_idx": {
+          "name": "sync_generations_connection_status_idx",
+          "columns": ["connection_id", "status"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "sync_generations_connection_id_connections_id_fk": {
+          "name": "sync_generations_connection_id_connections_id_fk",
+          "tableFrom": "sync_generations",
+          "tableTo": "connections",
+          "columnsFrom": ["connection_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "sync_leases": {
+      "name": "sync_leases",
+      "columns": {
+        "connection_id": {
+          "name": "connection_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "owner_token": {
+          "name": "owner_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "renewed_at": {
+          "name": "renewed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "sync_leases_connection_id_connections_id_fk": {
+          "name": "sync_leases_connection_id_connections_id_fk",
+          "tableFrom": "sync_leases",
+          "tableTo": "connections",
+          "columnsFrom": ["connection_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "sync_runs": {
+      "name": "sync_runs",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "connection_id": {
+          "name": "connection_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "generation_id": {
+          "name": "generation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "trigger": {
+          "name": "trigger",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "mode": {
+          "name": "mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'full'"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "finished_at": {
+          "name": "finished_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "page_count": {
+          "name": "page_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "record_count": {
+          "name": "record_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "provider_request_count": {
+          "name": "provider_request_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "rate_limit_remaining": {
+          "name": "rate_limit_remaining",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rate_limit_reset_at": {
+          "name": "rate_limit_reset_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "error_class": {
+          "name": "error_class",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "error_summary": {
+          "name": "error_summary",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "sync_runs_connection_id_connections_id_fk": {
+          "name": "sync_runs_connection_id_connections_id_fk",
+          "tableFrom": "sync_runs",
+          "tableTo": "connections",
+          "columnsFrom": ["connection_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "sync_runs_generation_id_sync_generations_id_fk": {
+          "name": "sync_runs_generation_id_sync_generations_id_fk",
+          "tableFrom": "sync_runs",
+          "tableTo": "sync_generations",
+          "columnsFrom": ["generation_id"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
