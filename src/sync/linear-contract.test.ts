@@ -2,17 +2,30 @@ import { describe, expect, it } from "vitest";
 import { LinearGraphqlSource } from "./linear-graphql-source";
 
 const contract = {
+  apiKey: process.env.LINEAR_CONTRACT_API_KEY,
   accessToken: process.env.LINEAR_CONTRACT_ACCESS_TOKEN,
   workspaceId: process.env.LINEAR_CONTRACT_WORKSPACE_ID,
   teamId: process.env.LINEAR_CONTRACT_TEAM_ID,
   labelId: process.env.LINEAR_CONTRACT_PROJECT_LABEL_ID,
   projectId: process.env.LINEAR_CONTRACT_PROJECT_ID
 };
-const contractDescribe = Object.values(contract).every(Boolean) ? describe : describe.skip;
+const contractCredential = contract.apiKey
+  ? ({ type: "api_key", token: contract.apiKey } as const)
+  : contract.accessToken
+    ? ({ type: "oauth", token: contract.accessToken } as const)
+    : null;
+const contractDescribe =
+  contractCredential &&
+  contract.workspaceId &&
+  contract.teamId &&
+  contract.labelId &&
+  contract.projectId
+    ? describe
+    : describe.skip;
 
 contractDescribe("authorized Linear adapter contract", () => {
   it("completely paginates configured source collections and preserves estimate semantics", async () => {
-    const source = new LinearGraphqlSource(contract.accessToken!, {
+    const source = new LinearGraphqlSource(contractCredential!, {
       workspaceId: contract.workspaceId!,
       teamId: contract.teamId!,
       membershipLabelId: contract.labelId!

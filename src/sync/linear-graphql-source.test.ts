@@ -9,6 +9,44 @@ function response(data: unknown) {
 }
 
 describe("LinearGraphqlSource", () => {
+  it("uses the bare authorization header for a personal API key", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      response({
+        data: { projects: { nodes: [], pageInfo: { hasNextPage: false, endCursor: null } } }
+      })
+    );
+    const source = new LinearGraphqlSource(
+      { type: "api_key", token: "personal-key-value" },
+      { workspaceId: "workspace-1", teamId: "team-1", membershipLabelId: "label-1" },
+      fetcher
+    );
+
+    await source.getProjects(null);
+
+    expect(new Headers(fetcher.mock.calls[0]?.[1]?.headers).get("authorization")).toBe(
+      "personal-key-value"
+    );
+  });
+
+  it("uses a bearer authorization header for an OAuth access token", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      response({
+        data: { projects: { nodes: [], pageInfo: { hasNextPage: false, endCursor: null } } }
+      })
+    );
+    const source = new LinearGraphqlSource(
+      { type: "oauth", token: "oauth-access-value" },
+      { workspaceId: "workspace-1", teamId: "team-1", membershipLabelId: "label-1" },
+      fetcher
+    );
+
+    await source.getProjects(null);
+
+    expect(new Headers(fetcher.mock.calls[0]?.[1]?.headers).get("authorization")).toBe(
+      "Bearer oauth-access-value"
+    );
+  });
+
   it("maps scoped project and issue pages without preserving raw payloads", async () => {
     const fetcher = vi
       .fn<typeof fetch>()
@@ -60,7 +98,7 @@ describe("LinearGraphqlSource", () => {
         })
       );
     const source = new LinearGraphqlSource(
-      "secret-access-token",
+      { type: "oauth", token: "secret-access-token" },
       { workspaceId: "workspace-1", teamId: "team-1", membershipLabelId: "label-1" },
       fetcher
     );
@@ -98,6 +136,8 @@ describe("LinearGraphqlSource", () => {
 
     const firstRequest = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
     expect(firstRequest.variables).toMatchObject({ teamId: "team-1", labelId: "label-1" });
+    expect(firstRequest.query).toContain("teams(first: 50)");
+    expect(firstRequest.query).toContain("labels(first: 50)");
     expect(String(fetcher.mock.calls[0]?.[1]?.headers)).not.toContain("secret-access-token");
   });
 
@@ -116,7 +156,7 @@ describe("LinearGraphqlSource", () => {
       );
     const sleep = vi.fn(async () => undefined);
     const source = new LinearGraphqlSource(
-      "token",
+      { type: "oauth", token: "token" },
       { workspaceId: "workspace-1", teamId: "team-1", membershipLabelId: "label-1" },
       fetcher,
       { sleep, maxAttempts: 2 }
@@ -130,7 +170,7 @@ describe("LinearGraphqlSource", () => {
 
   it("rejects GraphQL errors even when the HTTP response is successful", async () => {
     const source = new LinearGraphqlSource(
-      "token",
+      { type: "oauth", token: "token" },
       { workspaceId: "workspace-1", teamId: "team-1", membershipLabelId: "label-1" },
       vi.fn<typeof fetch>().mockResolvedValue(response({ errors: [{ message: "rate limited" }] }))
     );

@@ -5,7 +5,7 @@ import { AppShell } from "./app-shell";
 
 describe("AppShell", () => {
   it("identifies Horizonbound and the disconnected state", () => {
-    render(<AppShell nonLoopbackWarning={null} oauthConfigured={false} />);
+    render(<AppShell nonLoopbackWarning={null} credentialMode={null} />);
 
     expect(screen.getByRole("heading", { name: "Horizonbound" })).toBeInTheDocument();
     expect(screen.getByText(/not connected to linear/i)).toBeInTheDocument();
@@ -15,7 +15,7 @@ describe("AppShell", () => {
     render(
       <AppShell
         nonLoopbackWarning="Network peers may be able to reach this application."
-        oauthConfigured={false}
+        credentialMode={null}
       />
     );
 
@@ -26,21 +26,26 @@ describe("AppShell", () => {
     render(
       <AppShell
         nonLoopbackWarning={null}
-        oauthConfigured={false}
+        credentialMode={null}
         notice="Linear disconnected. Cached local data remains in the configured state directory."
       />
     );
     expect(screen.getByRole("status")).toHaveTextContent(/cached local data remains/i);
   });
 
-  it("links to Linear connection only when OAuth is configured", () => {
-    const { rerender } = render(<AppShell nonLoopbackWarning={null} oauthConfigured={false} />);
+  it("connects with the configured credential mode and explains its boundary", () => {
+    const { rerender } = render(<AppShell nonLoopbackWarning={null} credentialMode={null} />);
     expect(screen.queryByRole("link", { name: "Connect Linear" })).not.toBeInTheDocument();
 
-    rerender(<AppShell nonLoopbackWarning={null} oauthConfigured />);
-    expect(screen.getByRole("link", { name: "Connect Linear" })).toHaveAttribute(
-      "href",
+    rerender(<AppShell nonLoopbackWarning={null} credentialMode="api_key" />);
+    expect(screen.getByRole("button", { name: "Connect Linear" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Connect Linear" }).closest("form")).toHaveAttribute(
+      "action",
       "/api/auth/linear/start"
     );
+    expect(screen.getByText(/configured personal API key/i)).toBeInTheDocument();
+
+    rerender(<AppShell nonLoopbackWarning={null} credentialMode="oauth" />);
+    expect(screen.getByText(/read-only access/i)).toBeInTheDocument();
   });
 });

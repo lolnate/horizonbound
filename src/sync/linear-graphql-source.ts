@@ -72,7 +72,7 @@ interface SourceScope {
 
 const PROJECTS_QUERY = `query HorizonboundProjects($first: Int!, $after: String, $teamId: ID!, $labelId: ID!) {
   projects(first: $first, after: $after, includeArchived: true, filter: { accessibleTeams: { id: { eq: $teamId } }, labels: { id: { eq: $labelId } } }) {
-    nodes { id name url startDate archivedAt status { id } teams(first: 250) { nodes { id } pageInfo { hasNextPage endCursor } } labels(first: 250) { nodes { id } pageInfo { hasNextPage endCursor } } }
+    nodes { id name url startDate archivedAt status { id } teams(first: 50) { nodes { id } pageInfo { hasNextPage endCursor } } labels(first: 50) { nodes { id } pageInfo { hasNextPage endCursor } } }
     pageInfo { hasNextPage endCursor }
   }
 }`;
@@ -89,6 +89,9 @@ interface LinearGraphqlSourceOptions {
   maxAttempts?: number;
 }
 
+export type LinearCredential =
+  { type: "api_key"; token: string } | { type: "oauth"; token: string };
+
 export class LinearGraphqlSource implements LinearSource {
   private readonly projectIds = new Set<string>();
   private requestCount = 0;
@@ -96,7 +99,7 @@ export class LinearGraphqlSource implements LinearSource {
   private rateLimitResetAt: string | null = null;
 
   constructor(
-    private readonly accessToken: string,
+    private readonly credential: LinearCredential,
     private readonly scope: SourceScope,
     private readonly fetcher: typeof fetch = fetch,
     private readonly options: LinearGraphqlSourceOptions = {}
@@ -246,7 +249,10 @@ export class LinearGraphqlSource implements LinearSource {
       const response = await this.fetcher("https://api.linear.app/graphql", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${this.accessToken}`,
+          Authorization:
+            this.credential.type === "api_key"
+              ? this.credential.token
+              : `Bearer ${this.credential.token}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ query, variables }),

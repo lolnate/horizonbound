@@ -1,0 +1,1 @@
+ALTER TABLE `connections` ADD `credential_mode` text DEFAULT 'oauth' NOT NULL;

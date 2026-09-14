@@ -1,10 +1,10 @@
 interface AppShellProps {
   nonLoopbackWarning: string | null;
-  oauthConfigured: boolean;
+  credentialMode: "api_key" | "oauth" | null;
   notice?: string;
 }
 
-export function AppShell({ nonLoopbackWarning, oauthConfigured, notice }: AppShellProps) {
+export function AppShell({ nonLoopbackWarning, credentialMode, notice }: AppShellProps) {
   return (
     <main className="shell">
       {nonLoopbackWarning ? (
@@ -31,19 +31,25 @@ export function AppShell({ nonLoopbackWarning, oauthConfigured, notice }: AppShe
           Horizonbound keeps Linear authoritative for delivery while adding explicit forecasts,
           capacity lanes, and portfolio decisions.
         </p>
-        {oauthConfigured ? (
+        {credentialMode === "api_key" ? (
+          <form action="/api/auth/linear/start" method="post">
+            <button type="submit">Connect Linear</button>
+          </form>
+        ) : credentialMode === "oauth" ? (
           <a className="button" href="/api/auth/linear/start">
             Connect Linear
           </a>
         ) : (
-          <button type="button" disabled aria-describedby="oauth-note">
+          <button type="button" disabled aria-describedby="credential-note">
             Connect Linear
           </button>
         )}
-        <p id="oauth-note" className="muted">
-          {oauthConfigured
-            ? "Linear will request read-only access."
-            : "OAuth configuration is required before connection can be enabled."}
+        <p id="credential-note" className="muted">
+          {credentialMode === "api_key"
+            ? "Horizonbound will use the configured personal API key. The key stays server-side."
+            : credentialMode === "oauth"
+              ? "Linear will request read-only access."
+              : "A personal API key or OAuth configuration is required before connection can be enabled."}
         </p>
       </section>
     </main>

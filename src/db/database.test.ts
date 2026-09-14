@@ -1,6 +1,7 @@
-import { mkdtemp, stat } from "node:fs/promises";
+import { mkdtemp, readFile, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import Database from "better-sqlite3";
 import { afterEach, describe, expect, it } from "vitest";
 import { openDatabase, type HorizonboundDatabase } from "./database";
 import { acquireLease, promoteGeneration, releaseLease } from "./sync-repository";
@@ -28,7 +29,53 @@ describe("SQLite persistence", () => {
     expect(database.sqlite.pragma("busy_timeout", { simple: true })).toBe(5000);
     expect((await stat(directory)).mode & 0o777).toBe(0o700);
     expect((await stat(database.path)).mode & 0o777).toBe(0o600);
-    expect(database.schemaVersion()).toBe(1);
+    expect(database.schemaVersion()).toBe(2);
+  });
+
+  it("upgrades OAuth connections without changing tokens or sessions", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "horizonbound-upgrade-"));
+    const sqlite = new Database(path.join(directory, "state.sqlite"));
+    try {
+      sqlite.exec(
+        await readFile(path.join(process.cwd(), "drizzle/0000_graceful_lifeguard.sql"), "utf8")
+      );
+      sqlite
+        .prepare(
+          `INSERT INTO connections (
+             id, linear_user_id, workspace_id, workspace_name, access_token_ciphertext,
+             refresh_token_ciphertext, expires_at, granted_scope, created_at, updated_at
+           ) VALUES ('connection-1', 'user-1', 'workspace-1', 'Workspace',
+                     'encrypted-access', 'encrypted-refresh', 999999, 'read', 1, 1)`
+        )
+        .run();
+      sqlite
+        .prepare(
+          `INSERT INTO app_sessions (id_hash, connection_id, expires_at, created_at)
+           VALUES ('session-hash', 'connection-1', 999999, 1)`
+        )
+        .run();
+
+      sqlite.exec(
+        await readFile(path.join(process.cwd(), "drizzle/0001_complete_black_cat.sql"), "utf8")
+      );
+
+      expect(
+        sqlite
+          .prepare(
+            "SELECT credential_mode AS credentialMode, access_token_ciphertext AS accessToken, refresh_token_ciphertext AS refreshToken FROM connections"
+          )
+          .get()
+      ).toEqual({
+        credentialMode: "oauth",
+        accessToken: "encrypted-access",
+        refreshToken: "encrypted-refresh"
+      });
+      expect(sqlite.prepare("SELECT connection_id FROM app_sessions").pluck().get()).toBe(
+        "connection-1"
+      );
+    } finally {
+      sqlite.close();
+    }
   });
 
   it("rejects source relationships that cross or omit generation ownership", async () => {

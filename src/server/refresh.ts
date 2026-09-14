@@ -19,8 +19,10 @@ export async function refreshConnection(
 ): Promise<ReconciliationResult> {
   const database = getDatabase();
   const connection = database.sqlite
-    .prepare("SELECT workspace_id AS workspaceId FROM connections WHERE id = ?")
-    .get(connectionId) as { workspaceId: string } | undefined;
+    .prepare(
+      "SELECT workspace_id AS workspaceId, credential_mode AS credentialMode FROM connections WHERE id = ?"
+    )
+    .get(connectionId) as { workspaceId: string; credentialMode: "api_key" | "oauth" } | undefined;
   if (!connection) throw new Error("Linear connection is unavailable");
 
   const plan = planId ? getPlan(database, planId) : undefined;
@@ -46,10 +48,21 @@ export async function refreshConnection(
       trigger,
       leaseTtlMs: 60_000
     });
-  const oauth = synthetic ? null : getOAuthService();
+  const oauth = synthetic || connection.credentialMode === "api_key" ? null : getOAuthService();
+  const apiKey = process.env.LINEAR_API_KEY?.trim();
+  if (!synthetic && connection.credentialMode === "api_key" && !apiKey) {
+    throw new Error("Linear API key is not configured");
+  }
+  const credential =
+    connection.credentialMode === "api_key"
+      ? { type: "api_key" as const, token: apiKey! }
+      : {
+          type: "oauth" as const,
+          token: synthetic ? "" : await oauth!.getAccessToken(connectionId)
+        };
   const source = synthetic
     ? new SyntheticLinearSource(configurationOnly)
-    : new LinearGraphqlSource(await oauth!.getAccessToken(connectionId), scope);
+    : new LinearGraphqlSource(credential, scope);
 
   try {
     return await run(source);
@@ -57,7 +70,9 @@ export async function refreshConnection(
     if (isAuthorizationFailure(error) && oauth) {
       try {
         const refreshedAccessToken = await oauth.refreshAccessToken(connectionId);
-        return await run(new LinearGraphqlSource(refreshedAccessToken, scope));
+        return await run(
+          new LinearGraphqlSource({ type: "oauth", token: refreshedAccessToken }, scope)
+        );
       } catch (retryError) {
         database.sqlite
           .prepare("UPDATE connections SET reconnect_required = 1, updated_at = ? WHERE id = ?")

@@ -18,6 +18,9 @@ export const connections = sqliteTable(
     linearUserName: text("linear_user_name").notNull().default(""),
     workspaceId: text("workspace_id").notNull(),
     workspaceName: text("workspace_name").notNull(),
+    credentialMode: text("credential_mode", { enum: ["api_key", "oauth"] })
+      .notNull()
+      .default("oauth"),
     accessTokenCiphertext: text("access_token_ciphertext").notNull(),
     refreshTokenCiphertext: text("refresh_token_ciphertext").notNull(),
     expiresAt: integer("expires_at").notNull(),
