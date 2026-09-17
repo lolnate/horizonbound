@@ -7,7 +7,7 @@ import {
 } from "@/auth/web-security";
 import { loadRuntimeConfig } from "@/config/runtime";
 import { refreshConnection } from "@/server/refresh";
-import { getOAuthService } from "@/server/services";
+import { getDatabase, getOAuthService } from "@/server/services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,9 +29,12 @@ export async function GET(request: NextRequest) {
     const session = service.verifySession(completed.sessionToken) as
       { connectionId: string } | undefined;
     if (!session) throw new Error("Connected session could not be established");
+    const plan = getDatabase()
+      .sqlite.prepare("SELECT id FROM plans WHERE connection_id = ? ORDER BY created_at LIMIT 1")
+      .get(session.connectionId) as { id: string } | undefined;
     let syncFailed = false;
     try {
-      await refreshConnection(session.connectionId, null, "launch");
+      await refreshConnection(session.connectionId, plan?.id ?? null, "launch");
     } catch {
       syncFailed = true;
     }

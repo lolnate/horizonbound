@@ -8,7 +8,12 @@ import {
 } from "@/auth/web-security";
 import { apiKeyRuntimeAllowed, loadRuntimeConfig } from "@/config/runtime";
 import { refreshConnection } from "@/server/refresh";
-import { getApiKeyService, getOAuthService, linearCredentialMode } from "@/server/services";
+import {
+  getApiKeyService,
+  getDatabase,
+  getOAuthService,
+  linearCredentialMode
+} from "@/server/services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,9 +50,12 @@ export async function POST() {
       return NextResponse.json({ error: "Personal API key is not configured" }, { status: 405 });
     }
     const connected = await getApiKeyService().connect();
+    const plan = getDatabase()
+      .sqlite.prepare("SELECT id FROM plans WHERE connection_id = ? ORDER BY created_at LIMIT 1")
+      .get(connected.connectionId) as { id: string } | undefined;
     let syncFailed = false;
     try {
-      await refreshConnection(connected.connectionId, null, "launch");
+      await refreshConnection(connected.connectionId, plan?.id ?? null, "launch");
     } catch {
       syncFailed = true;
     }
