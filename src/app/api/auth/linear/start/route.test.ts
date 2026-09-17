@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   refreshConnection: vi.fn(async () => undefined),
   credentialMode: vi.fn<() => "api_key" | "oauth" | null>(() => "api_key"),
   apiKeyRuntimeAllowed: vi.fn(() => true),
+  plan: { value: { id: "plan-1" } as { id: string } | undefined },
   origin: { value: "http://127.0.0.1:3000" }
 }));
 
@@ -23,6 +24,9 @@ vi.mock("@/config/runtime", () => ({
 vi.mock("@/server/refresh", () => ({ refreshConnection: mocks.refreshConnection }));
 vi.mock("@/server/services", () => ({
   getApiKeyService: () => ({ connect: mocks.connect }),
+  getDatabase: () => ({
+    sqlite: { prepare: () => ({ get: () => mocks.plan.value }) }
+  }),
   getOAuthService: () => ({ beginConnection: mocks.beginConnection }),
   linearCredentialMode: mocks.credentialMode
 }));
@@ -36,6 +40,7 @@ describe("POST /api/auth/linear/start", () => {
     mocks.refreshConnection.mockResolvedValue(undefined);
     mocks.credentialMode.mockReturnValue("api_key");
     mocks.apiKeyRuntimeAllowed.mockReturnValue(true);
+    mocks.plan.value = { id: "plan-1" };
     mocks.origin.value = "http://127.0.0.1:3000";
   });
 
@@ -43,10 +48,18 @@ describe("POST /api/auth/linear/start", () => {
     const response = await POST();
 
     expect(mocks.connect).toHaveBeenCalledOnce();
-    expect(mocks.refreshConnection).toHaveBeenCalledWith("linear:workspace-1", null, "launch");
+    expect(mocks.refreshConnection).toHaveBeenCalledWith("linear:workspace-1", "plan-1", "launch");
     expect(response.headers.get("location")).toBe("http://127.0.0.1:3000/");
     expect(response.headers.get("set-cookie")).toContain("horizonbound_session=opaque-session");
     expect(response.headers.get("set-cookie")).not.toContain("lin_api");
+  });
+
+  it("uses a configuration-only refresh when the connection has no plan", async () => {
+    mocks.plan.value = undefined;
+
+    await POST();
+
+    expect(mocks.refreshConnection).toHaveBeenCalledWith("linear:workspace-1", null, "launch");
   });
 
   it("carries an initial source-sync failure into the connected page", async () => {
